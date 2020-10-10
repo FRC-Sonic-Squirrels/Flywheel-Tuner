@@ -26,7 +26,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
   private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
-  private static final int deviceID = 1;
+  private int deviceID = 1;
   private CANSparkMax m_motor;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
@@ -34,12 +34,42 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+
+    // PID coefficients
+    kP = 6e-5;
+    kI = 0;
+    kD = 0;
+    kIz = 0;
+    kFF = 0.000015;
+    kMaxOutput = 1;
+    kMinOutput = -1;
+    maxRPM = 5700;
+
+    initMotorController(deviceID);
+
+
+
+    // display PID coefficients on SmartDashboard
+    SmartDashboard.putNumber("P Gain", kP);
+    SmartDashboard.putNumber("I Gain", kI);
+    SmartDashboard.putNumber("D Gain", kD);
+    SmartDashboard.putNumber("I Zone", kIz);
+    SmartDashboard.putNumber("Feed Forward", kFF);
+    SmartDashboard.putNumber("Max Output", kMaxOutput);
+    SmartDashboard.putNumber("Min Output", kMinOutput);
+    SmartDashboard.putNumber("CAN Id", deviceID);
+  }
+
+  private void initMotorController(int canId) {
+
+    deviceID = canId;
+
     // initialize motor
     m_motor = new CANSparkMax(deviceID, MotorType.kBrushless);
 
     /**
-     * The RestoreFactoryDefaults method can be used to reset the configuration parameters
-     * in the SPARK MAX to their factory default state. If no argument is passed, these
+     * The RestoreFactoryDefaults method can be used to reset the configuration parameters 
+     * in the SPARK MAX to their factory default state. If no argument is passed, these 
      * parameters will not persist between power cycles
      */
     m_motor.restoreFactoryDefaults();
@@ -54,16 +84,6 @@ public class Robot extends TimedRobot {
     // Encoder object created to display position values
     m_encoder = m_motor.getEncoder();
 
-    // PID coefficients
-    kP = 6e-5; 
-    kI = 0;
-    kD = 0; 
-    kIz = 0; 
-    kFF = 0.000015; 
-    kMaxOutput = 1; 
-    kMinOutput = -1;
-    maxRPM = 5700;
-
     // set PID coefficients
     m_pidController.setP(kP);
     m_pidController.setI(kI);
@@ -71,15 +91,6 @@ public class Robot extends TimedRobot {
     m_pidController.setIZone(kIz);
     m_pidController.setFF(kFF);
     m_pidController.setOutputRange(kMinOutput, kMaxOutput);
-
-    // display PID coefficients on SmartDashboard
-    SmartDashboard.putNumber("P Gain", kP);
-    SmartDashboard.putNumber("I Gain", kI);
-    SmartDashboard.putNumber("D Gain", kD);
-    SmartDashboard.putNumber("I Zone", kIz);
-    SmartDashboard.putNumber("Feed Forward", kFF);
-    SmartDashboard.putNumber("Max Output", kMaxOutput);
-    SmartDashboard.putNumber("Min Output", kMinOutput);
   }
 
   @Override
@@ -92,16 +103,21 @@ public class Robot extends TimedRobot {
     double ff = SmartDashboard.getNumber("Feed Forward", 0);
     double max = SmartDashboard.getNumber("Max Output", 0);
     double min = SmartDashboard.getNumber("Min Output", 0);
+    int canId = (int) SmartDashboard.getNumber("CAN Id", 0);
 
-    // if PID coefficients on SmartDashboard have changed, write new values to controller
-    if((p != kP)) { m_pidController.setP(p); kP = p; }
-    if((i != kI)) { m_pidController.setI(i); kI = i; }
-    if((d != kD)) { m_pidController.setD(d); kD = d; }
-    if((iz != kIz)) { m_pidController.setIZone(iz); kIz = iz; }
-    if((ff != kFF)) { m_pidController.setFF(ff); kFF = ff; }
-    if((max != kMaxOutput) || (min != kMinOutput)) { 
-      m_pidController.setOutputRange(min, max); 
-      kMinOutput = min; kMaxOutput = max; 
+    if (canId != deviceID) {
+      initMotorController(canId);
+    }
+
+   // if PID coefficients on SmartDashboard have changed, write new values to controller
+   if((p != kP)) { m_pidController.setP(p); kP = p; }
+   if((i != kI)) { m_pidController.setI(i); kI = i; }
+   if((d != kD)) { m_pidController.setD(d); kD = d; }
+   if((iz != kIz)) { m_pidController.setIZone(iz); kIz = iz; }
+   if((ff != kFF)) { m_pidController.setFF(ff); kFF = ff; }
+   if((max != kMaxOutput) || (min != kMinOutput)) { 
+      m_pidController.setOutputRange(min, max);
+      kMinOutput = min; kMaxOutput = max;
     }
 
     /**
@@ -118,12 +134,12 @@ public class Robot extends TimedRobot {
      *  com.revrobotics.ControlType.kVelocity
      *  com.revrobotics.ControlType.kVoltage
      */
-    double setPoint = m_xboxController.getY(Hand.kLeft)*maxRPM;
+    double setPoint = m_xboxController.getY(Hand.kLeft) * maxRPM;
     m_pidController.setReference(setPoint, ControlType.kVelocity);
-    
+
     SmartDashboard.putNumber("SetPoint (RPM)", setPoint);
     SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getVelocity());
-    SmartDashboard.putNumber("Total Current (Amp)",m_pdp.getTotalCurrent());
-    SmartDashboard.putNumber("Total Power (W)",m_pdp.getTotalPower());
+    SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
+    SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
   }
 }
