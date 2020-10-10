@@ -7,8 +7,10 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.CANEncoder;
@@ -22,7 +24,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
  * it contains the code necessary to operate a robot with tank drive.
  */
 public class Robot extends TimedRobot {
-  private Joystick m_stick;
+  private XboxController m_xboxController = new XboxController(0);
+  private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
   private static final int deviceID = 1;
   private CANSparkMax m_motor;
   private CANPIDController m_pidController;
@@ -31,8 +34,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    m_stick = new Joystick(0);
-
     // initialize motor
     m_motor = new CANSparkMax(deviceID, MotorType.kBrushless);
 
@@ -117,10 +118,12 @@ public class Robot extends TimedRobot {
      *  com.revrobotics.ControlType.kVelocity
      *  com.revrobotics.ControlType.kVoltage
      */
-    double setPoint = m_stick.getY()*maxRPM;
+    double setPoint = m_xboxController.getY(Hand.kLeft)*maxRPM;
     m_pidController.setReference(setPoint, ControlType.kVelocity);
     
-    SmartDashboard.putNumber("SetPoint", setPoint);
-    SmartDashboard.putNumber("ProcessVariable", m_encoder.getVelocity());
+    SmartDashboard.putNumber("SetPoint (RPM)", setPoint);
+    SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getVelocity());
+    SmartDashboard.putNumber("Total Current (Amp)",m_pdp.getTotalCurrent());
+    SmartDashboard.putNumber("Total Power (W)",m_pdp.getTotalPower());
   }
 }
