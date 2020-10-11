@@ -11,3 +11,7 @@ If you're using a Cross The Road Electronics (CTRE) motor you should use the CTR
 * <https://www.revrobotics.com/sparkmax-users-manual/#section-3-4> REV Robotics closed loop tuning instructions
 * <https://phoenix-documentation.readthedocs.io/en/latest/ch16_ClosedLoop.html> CTRE closed loop tuning instructions
 * <https://howdybots.org/wp-content/uploads/2019/12/Dont_Break_Your_Bot_Whitepaper-V1.pdf>  Howdybots Don't Break Your Bot
+
+## Original REV Robotics Example Code
+
+<https://github.com/REVrobotics/SPARK-MAX-Examples/tree/master/Java/Velocity%20Closed%20Loop%20Control>
