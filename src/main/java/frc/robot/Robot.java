@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.CANEncoder;
@@ -27,15 +28,19 @@ public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
   private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
   private int deviceID = 1;
+  private double m_setPoint = 0;
+  private long m_startTime = 0;
+  private long m_elapsedTime = 0;
   private CANSparkMax m_motor;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
+  SendableChooser <String> mode_chooser = new SendableChooser<>();
 
   @Override
   public void robotInit() {
 
-    // PID coefficients
+    // PID coefficients (starting point)
     kP = 6e-5;
     kI = 0;
     kD = 0;
@@ -47,8 +52,6 @@ public class Robot extends TimedRobot {
 
     initMotorController(deviceID);
 
-
-
     // display PID coefficients on SmartDashboard
     SmartDashboard.putNumber("P Gain", kP);
     SmartDashboard.putNumber("I Gain", kI);
@@ -58,6 +61,10 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Max Output", kMaxOutput);
     SmartDashboard.putNumber("Min Output", kMinOutput);
     SmartDashboard.putNumber("CAN Id", deviceID);
+
+    mode_chooser.addOption("Variable RPM (left stick)", "variable");
+    mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
+    SmartDashboard.putData("Mode", mode_chooser);
   }
 
   private void initMotorController(int canId) {
@@ -134,12 +141,57 @@ public class Robot extends TimedRobot {
      *  com.revrobotics.ControlType.kVelocity
      *  com.revrobotics.ControlType.kVoltage
      */
-    double setPoint = m_xboxController.getY(Hand.kLeft) * maxRPM;
-    m_pidController.setReference(setPoint, ControlType.kVelocity);
+    double setPoint = 0.0;
+    if (mode_chooser.getSelected() == "variable") {
+      // left joystick set RPM setpoint
+      setPoint = m_xboxController.getY(Hand.kLeft) * maxRPM;
+      m_pidController.setReference(setPoint, ControlType.kVelocity);
+    }
+    else if (mode_chooser.getSelected() == "fixed") {
+      // press A, B, Y, X buttons set speed
+      // press Right Bumper to stop (set RPM to zero)
+      if (m_xboxController.getAButtonPressed()) {
+        setPoint = 1000;
+        m_pidController.setReference(setPoint, ControlType.kVelocity);
+      }
+      else if (m_xboxController.getBButtonPressed()) {
+        setPoint = 2000;
+        m_pidController.setReference(setPoint, ControlType.kVelocity);
+      }
+      else if (m_xboxController.getYButtonPressed()) {
+        setPoint = 3000;
+        m_pidController.setReference(setPoint, ControlType.kVelocity);
+      }
+      else if (m_xboxController.getXButtonPressed()) {
+        setPoint = 4000;
+        m_pidController.setReference(setPoint, ControlType.kVelocity);
+      }
+      else if (m_xboxController.getBumperPressed(Hand.kRight)) {
+        setPoint = 0;
+        m_pidController.setReference(setPoint, ControlType.kVelocity);
+      } 
+    }
 
-    SmartDashboard.putNumber("SetPoint (RPM)", setPoint);
-    SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getVelocity());
+    if (m_setPoint != setPoint) {
+      // set point changed, start a timer
+      m_startTime = System.nanoTime();
+      m_elapsedTime = 0;
+
+      m_setPoint = setPoint;
+    }
+
+    double rpm = m_encoder.getVelocity();
+
+    if (m_elapsedTime == 0) {
+      if (rpm >= m_setPoint) {
+          m_elapsedTime = System.nanoTime() - m_startTime;
+      }
+    }
+
+    SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
+    SmartDashboard.putNumber("Velocity (RPM)", rpm);
     SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
     SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
+    SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime);
   }
 }
