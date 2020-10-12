@@ -46,13 +46,13 @@ public class Robot extends TimedRobot {
   public void robotInit() {
 
     // PID coefficients (starting point)
-    kP = 0;
+    kP = 0.00003;
     kI = 0;
     kD = 0;
     kIz = 0;
-    kFF = 0.000015;
+    kFF = 0.00017; // 0.000015; 
     kMaxOutput = 1;
-    kMinOutput = -1;
+    kMinOutput = 0.0;  // -1
     maxRPM = 5700;
 
     initMotorController(deviceID, m_follow_deviceID, m_follow_motor_inverted);
@@ -73,6 +73,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
+    SmartDashboard.putNumber("Error (RPM)", 0.0);
     SmartDashboard.putNumber("Follow CAN Id", m_follow_deviceID);
     SmartDashboard.putBoolean("Invert Follow Motor", m_follow_motor_inverted);
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
@@ -93,15 +94,19 @@ public class Robot extends TimedRobot {
      * parameters will not persist between power cycles
      */
     m_motor.restoreFactoryDefaults();
+    m_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
 
     if (m_follow_motor != null) {
       // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
       m_follow_motor.restoreFactoryDefaults();
+      // make sure motor is in coast mode, in case this motor is mechanically joined to the leaad motor
+      m_follow_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     }
 
     if (follow_canId != 0) {
       // configure follow motor
       m_follow_motor = new CANSparkMax(follow_canId, MotorType.kBrushless);
+      m_follow_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
       m_follow_motor.follow(m_motor, follow_inverted);
     }
     else {
@@ -221,22 +226,20 @@ public class Robot extends TimedRobot {
     double rpm = m_encoder.getVelocity();
 
     if (m_elapsedTime_sec == 0) {
-      if (rpm >= m_setPoint) {
+      if (Math.abs(rpm - m_setPoint) < 10) {
           m_elapsedTime_sec = ((double)(System.nanoTime() - m_startTime_nanosec)) / 1000000000.0;
       }
     }
 
-    if (rpm > m_setPoint) {
-      // track largest overshot of setPoint
-      if (m_setPoint - rpm > overshot) {
-        overshot = m_setPoint - rpm;
-      }
-    }
+    double error = rpm - m_setPoint;
 
-    if ((rpm < m_setPoint) && (m_elapsedTime_sec > 0)) {
-      // track largest undershot of setPoint
-      if (m_setPoint - rpm < overshot) {
-        undershot = m_setPoint - rpm;
+    if (m_elapsedTime_sec > 0) {
+      // track max and min error after reaching target rpm
+      if (error > overshot) {
+        overshot = error;
+      }
+      if (error < undershot) {
+        undershot = error;
       }
     }
 
@@ -247,5 +250,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
+    SmartDashboard.putNumber("Error (RPM)", error);
   }
 }
