@@ -29,8 +29,8 @@ public class Robot extends TimedRobot {
   private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
   private int deviceID = 1;
   private double m_setPoint = 0;
-  private long m_startTime = 0;
-  private long m_elapsedTime = 0;
+  private long m_startTime_nanosec = 0;
+  private double m_elapsedTime_sec = 0;
   private CANSparkMax m_motor;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
@@ -61,6 +61,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Max Output", kMaxOutput);
     SmartDashboard.putNumber("Min Output", kMinOutput);
     SmartDashboard.putNumber("CAN Id", deviceID);
+    SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
+    SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getVelocity());
+    SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
+    SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
+    SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
 
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
@@ -141,7 +146,7 @@ public class Robot extends TimedRobot {
      *  com.revrobotics.ControlType.kVelocity
      *  com.revrobotics.ControlType.kVoltage
      */
-    double setPoint = 0.0;
+    double setPoint = m_setPoint;
     if (mode_chooser.getSelected() == "variable") {
       // left joystick set RPM setpoint
       setPoint = m_xboxController.getY(Hand.kLeft) * maxRPM;
@@ -174,17 +179,17 @@ public class Robot extends TimedRobot {
 
     if (m_setPoint != setPoint) {
       // set point changed, start a timer
-      m_startTime = System.nanoTime();
-      m_elapsedTime = 0;
+      m_startTime_nanosec = System.nanoTime();
+      m_elapsedTime_sec = 0;
 
       m_setPoint = setPoint;
     }
 
     double rpm = m_encoder.getVelocity();
 
-    if (m_elapsedTime == 0) {
+    if (m_elapsedTime_sec == 0) {
       if (rpm >= m_setPoint) {
-          m_elapsedTime = System.nanoTime() - m_startTime;
+          m_elapsedTime_sec = ((double)(System.nanoTime() - m_startTime_nanosec)) / 1000000000.0;
       }
     }
 
@@ -192,6 +197,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Velocity (RPM)", rpm);
     SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
     SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
-    SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime);
+    SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
   }
 }
