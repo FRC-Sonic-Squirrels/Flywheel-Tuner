@@ -9,7 +9,7 @@ I highly recommend reading [this excellent artticle](https://trickingrockstothin
 
 ## Tuning
 
-![Example Tuning Output](https://raw.githubusercontent.com/FRC-Sonic-Squirrels/Flywheel-Tuner/master/TuningExample.png)
+![Example Tuning Output](https://raw.githubusercontent.com/FRC-Sonic-Squirrels/Flywheel-Tuner/main/TuningExample.png)
 
 Start by importing the shuffleboard config (`shuffleboard_flywheel_tuner.json`) so that the output looks like the above image.
 
