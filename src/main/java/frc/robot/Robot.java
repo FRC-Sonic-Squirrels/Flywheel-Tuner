@@ -28,12 +28,15 @@ public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
   private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
   private int deviceID = 1;
+  private int m_follow_deviceID = 0;    // CAN Id zero disables follow motor mode
+  private boolean m_follow_motor_inverted = true;
   private double m_setPoint = 0;
   private long m_startTime_nanosec = 0;
   private double m_elapsedTime_sec = 0;
   private double overshot = 0;
   private double undershot = 0;
   private CANSparkMax m_motor;
+  private CANSparkMax m_follow_motor = null;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
@@ -43,7 +46,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
 
     // PID coefficients (starting point)
-    kP = 6e-5;
+    kP = 0;
     kI = 0;
     kD = 0;
     kIz = 0;
@@ -52,7 +55,7 @@ public class Robot extends TimedRobot {
     kMinOutput = -1;
     maxRPM = 5700;
 
-    initMotorController(deviceID);
+    initMotorController(deviceID, m_follow_deviceID, m_follow_motor_inverted);
 
     // display PID coefficients on SmartDashboard
     SmartDashboard.putNumber("P Gain", kP);
@@ -70,13 +73,14 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
-
+    SmartDashboard.putNumber("Follow CAN Id", m_follow_deviceID);
+    SmartDashboard.putBoolean("Invert Follow Motor", m_follow_motor_inverted);
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
     SmartDashboard.putData("Mode", mode_chooser);
   }
 
-  private void initMotorController(int canId) {
+  private void initMotorController(int canId, int follow_canId, boolean follow_inverted) {
 
     deviceID = canId;
 
@@ -89,6 +93,22 @@ public class Robot extends TimedRobot {
      * parameters will not persist between power cycles
      */
     m_motor.restoreFactoryDefaults();
+
+    if (m_follow_motor != null) {
+      // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
+      m_follow_motor.restoreFactoryDefaults();
+    }
+
+    if (follow_canId != 0) {
+      // configure follow motor
+      m_follow_motor = new CANSparkMax(follow_canId, MotorType.kBrushless);
+      m_follow_motor.follow(m_motor, follow_inverted);
+    }
+    else {
+      m_follow_motor = null;
+    }
+    m_follow_deviceID = follow_canId;
+    m_follow_motor_inverted = follow_inverted;
 
     /**
      * In order to use PID functionality for a controller, a CANPIDController object
@@ -121,8 +141,11 @@ public class Robot extends TimedRobot {
     double min = SmartDashboard.getNumber("Min Output", 0);
     int canId = (int) SmartDashboard.getNumber("CAN Id", 0);
 
-    if (canId != deviceID) {
-      initMotorController(canId);
+    int follow_canId = (int) SmartDashboard.getNumber("Follow CAN Id", 0);
+    boolean follow_inverted = (boolean) SmartDashboard.getBoolean("nvert Follow Motor", true);
+
+    if ((canId != deviceID) || (follow_canId != m_follow_deviceID) || (follow_inverted != m_follow_motor_inverted)) {
+      initMotorController(canId, follow_canId, follow_inverted);
     }
 
    // if PID coefficients on SmartDashboard have changed, write new values to controller
