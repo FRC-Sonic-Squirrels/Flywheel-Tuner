@@ -1,0 +1,435 @@
+{
+  "tabPane": [
+    {
+      "title": "SmartDashboard",
+      "autoPopulate": true,
+      "autoPopulatePrefix": "SmartDashboard/",
+      "widgetPane": {
+        "gridSize": 128.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "tiles": {
+          "0,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "ComboBox Chooser",
+              "_source0": "network_table:///SmartDashboard/Mode",
+              "_title": "Mode"
+            }
+          },
+          "2,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/D Gain",
+              "_title": "D Gain"
+            }
+          },
+          "2,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/I Zone",
+              "_title": "I Zone"
+            }
+          },
+          "1,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/P Gain",
+              "_title": "P Gain"
+            }
+          },
+          "1,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Max Output",
+              "_title": "Max Output"
+            }
+          },
+          "2,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/I Gain",
+              "_title": "I Gain"
+            }
+          },
+          "1,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Min Output",
+              "_title": "Min Output"
+            }
+          },
+          "1,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Feed Forward",
+              "_title": "Feed Forward"
+            }
+          },
+          "0,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/CAN Id",
+              "_title": "CAN Id"
+            }
+          },
+          "2,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/SetPoint (RPM)",
+              "_title": "SetPoint (RPM)"
+            }
+          },
+          "3,4": {
+            "size": [
+              6,
+              2
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/Total Current (Amp)",
+              "_title": "Total Current (Amp)",
+              "Graph/Visible time": 30.0,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Visible data/SmartDashboard/Total Current (Amp)": true
+            }
+          },
+          "1,4": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Time to reach RPM",
+              "_title": "Time to reach RPM"
+            }
+          },
+          "3,0": {
+            "size": [
+              6,
+              2
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/Velocity (RPM)",
+              "_title": "Velocity (RPM)",
+              "Graph/Visible time": 30.0,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Visible data/SmartDashboard/Velocity (RPM)": true
+            }
+          },
+          "3,2": {
+            "size": [
+              6,
+              2
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/Total Power (W)",
+              "_title": "Total Power (W)",
+              "Graph/Visible time": 30.0,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -0.0,
+              "Visible data/SmartDashboard/Total Power (W)": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "LiveWindow",
+      "autoPopulate": true,
+      "autoPopulatePrefix": "LiveWindow/",
+      "widgetPane": {
+        "gridSize": 128.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "tiles": {
+          "0,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan15",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan15"
+            }
+          },
+          "1,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan0",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan0"
+            }
+          },
+          "2,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan1",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan1"
+            }
+          },
+          "3,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan2",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan2"
+            }
+          },
+          "4,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan3",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan3"
+            }
+          },
+          "5,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan4",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan4"
+            }
+          },
+          "6,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan5",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan5"
+            }
+          },
+          "7,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan7",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan7"
+            }
+          },
+          "8,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan8",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan8"
+            }
+          },
+          "9,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan6",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan6"
+            }
+          },
+          "10,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan9",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan9"
+            }
+          },
+          "11,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Voltage",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Voltage"
+            }
+          },
+          "0,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan10",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan10"
+            }
+          },
+          "1,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan11",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan11"
+            }
+          },
+          "2,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan12",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan12"
+            }
+          },
+          "3,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/TotalCurrent",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/TotalCurrent"
+            }
+          },
+          "4,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan14",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan14"
+            }
+          },
+          "5,1": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]/Chan13",
+              "_title": "Ungrouped/PowerDistributionPanel[0]/Chan13"
+            }
+          },
+          "6,1": {
+            "size": [
+              3,
+              2
+            ],
+            "content": {
+              "_type": "PDP",
+              "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]",
+              "_title": "Ungrouped/PowerDistributionPanel[0]",
+              "Visuals/Show voltage and current values": true
+            }
+          },
+          "9,1": {
+            "size": [
+              2,
+              4
+            ],
+            "content": {
+              "_type": "Subsystem Layout",
+              "_source0": "network_table:///LiveWindow/Ungrouped",
+              "_title": "Ungrouped",
+              "Layout/Label position": "BOTTOM",
+              "_children": [
+                {
+                  "_type": "PDP",
+                  "_source0": "network_table:///LiveWindow/Ungrouped/PowerDistributionPanel[0]",
+                  "_title": "PowerDistributionPanel[0]",
+                  "Visuals/Show voltage and current values": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "windowGeometry": {
+    "x": -4.0,
+    "y": 0.0,
+    "width": 1797.5,
+    "height": 973.0
+  }
+}
