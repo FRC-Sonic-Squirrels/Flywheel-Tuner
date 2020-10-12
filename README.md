@@ -7,11 +7,17 @@ If you're using a Cross The Road Electronics (CTRE) motor you should use the CTR
 
 I highly recommend reading [this excellent artticle](https://trickingrockstothink.com/blog_posts/2019/10/19/tuning_pid.html) on how to tune PIDF for a flywheel. Follow the example in the sidebar to tune an imaginary flywheel.
 
+## Setup
+
+Before building this project in VS Code, make sure you run the WPILib `Set Team Number` to your team number.
+
+Build this project and deploy it to your robot.
+
+Importing the shuffleboard config, `shuffleboard_flywheel_tuner.json`, so that the output looks like the image below.
+
 ## Tuning
 
 ![Example Tuning Output](https://raw.githubusercontent.com/FRC-Sonic-Squirrels/Flywheel-Tuner/main/TuningExample.png)
-
-Start by importing the shuffleboard config (`shuffleboard_flywheel_tuner.json`) so that the output looks like the above image.
 
 1. Set the CAN id to match the motor you are tuning.
 2. Set the mode to Variable or Fixed
