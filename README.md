@@ -20,13 +20,21 @@ Start by importing the shuffleboard config (`shuffleboard_flywheel_tuner.json`) 
 5. You probably won't need to adjust kI and the iZone. Only if the rpm falls short of the setpoint and it cannot be fixed using kF and kP.
 6. You probably won't need to adjust kD either. Only if after tuning everything else that the system is still overreacting.
 
+**Record your PIDF values!** The values are not saved by this proram.  
+
 ## Tuning Modes
 
-There are two modes: *Fixed* and *Variable. 
+There are two modes: **Fixed** and **Variable**. 
 
 In Fixed mode, use the Xbox controller A, B, Y, X, and right bumper buttons to toggle between RPM setpoints. The right bumber is zero RPM, A is 1000 RPM, B 2000 RPM, Y 3000 RPM, and X 4000 RPM.
 
 In Variable mode, the left stick controls the setpoint RPM. 
+
+## Follow Motor
+
+A follow motor can be configured by setting the 'Follow CAN Id' SmartDashboard field. Setting the CAN ID to zero disables follow mode. The 'Invert Follow Motor' field on Smartdashboard indicates if the follow motor turns in the same or opposite direction as the lead motor.
+
+Try determining the feed forward and kP values for a sinlge motor before tuning with the follow motor. Make sure the NEO motors are set to coast in idle mode. Consult the [Spark Max quickstart guide](https://www.revrobotics.com/sparkmax-quickstart/) to confirm. For brushless NEOs, the status LEDs should be magenta (and not cyan).
 
 ## References
 
