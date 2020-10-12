@@ -31,6 +31,8 @@ public class Robot extends TimedRobot {
   private double m_setPoint = 0;
   private long m_startTime_nanosec = 0;
   private double m_elapsedTime_sec = 0;
+  private double overshot = 0;
+  private double undershot = 0;
   private CANSparkMax m_motor;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
@@ -66,6 +68,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
     SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
+    SmartDashboard.putNumber("Overshot", overshot);
+    SmartDashboard.putNumber("Undershot", undershot);
 
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
@@ -181,6 +185,8 @@ public class Robot extends TimedRobot {
       // set point changed, start a timer
       m_startTime_nanosec = System.nanoTime();
       m_elapsedTime_sec = 0;
+      overshot = 0;
+      undershot = 0;
 
       m_setPoint = setPoint;
     }
@@ -193,10 +199,26 @@ public class Robot extends TimedRobot {
       }
     }
 
+    if (rpm > m_setPoint) {
+      // track largest overshot of setPoint
+      if (m_setPoint - rpm > overshot) {
+        overshot = m_setPoint - rpm;
+      }
+    }
+
+    if ((rpm < m_setPoint) && (m_elapsedTime_sec > 0)) {
+      // track largest undershot of setPoint
+      if (m_setPoint - rpm < overshot) {
+        undershot = m_setPoint - rpm;
+      }
+    }
+
     SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
     SmartDashboard.putNumber("Velocity (RPM)", rpm);
     SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
     SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
+    SmartDashboard.putNumber("Overshot", overshot);
+    SmartDashboard.putNumber("Undershot", undershot);
   }
 }
