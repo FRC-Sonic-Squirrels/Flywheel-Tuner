@@ -176,7 +176,11 @@ public class Robot extends TimedRobot {
     double setPoint = m_setPoint;
     if (mode_chooser.getSelected() == "variable") {
       // left joystick set RPM setpoint
-      setPoint = m_xboxController.getY(Hand.kLeft) * maxRPM;
+      setPoint =  m_xboxController.getY(Hand.kLeft) * maxRPM;
+      if (Math.abs(setPoint) < 40) {
+        // deadbanding. ignore really small joystick inputs
+        setPoint = 0;
+      }
       m_pidController.setReference(setPoint, ControlType.kVelocity);
     }
     else if (mode_chooser.getSelected() == "fixed") {
