@@ -120,9 +120,9 @@
               "_title": "SetPoint (RPM)"
             }
           },
-          "3,4": {
+          "9,4": {
             "size": [
-              6,
+              3,
               2
             ],
             "content": {
@@ -136,9 +136,9 @@
               "Visible data/SmartDashboard/Total Current (Amp)": true
             }
           },
-          "1,4": {
+          "9,1": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
@@ -150,7 +150,7 @@
           "3,0": {
             "size": [
               6,
-              2
+              4
             ],
             "content": {
               "_type": "Graph",
@@ -163,20 +163,91 @@
               "Visible data/SmartDashboard/Velocity (RPM)": true
             }
           },
-          "3,2": {
+          "0,4": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Toggle Button",
+              "_source0": "network_table:///SmartDashboard/Invert Follow Motor",
+              "_title": "Invert Follow Motor"
+            }
+          },
+          "9,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Undershot",
+              "_title": "Undershot"
+            }
+          },
+          "0,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Follow CAN Id",
+              "_title": "Follow CAN Id"
+            }
+          },
+          "3,4": {
             "size": [
               6,
               2
             ],
             "content": {
               "_type": "Graph",
-              "_source0": "network_table:///SmartDashboard/Total Power (W)",
-              "_title": "Total Power (W)",
+              "_source0": "network_table:///SmartDashboard/Error (RPM)",
+              "_title": "Error (RPM)",
+              "Graph/Visible time": 30.0,
+              "Y-axis/Automatic bounds": false,
+              "Y-axis/Upper bound": 100.0,
+              "Y-axis/Lower bound": -100.0,
+              "Visible data/SmartDashboard/Error (RPM)": true
+            }
+          },
+          "0,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Toggle Button",
+              "_source0": "network_table:///SmartDashboard/Invert Lead Motor",
+              "_title": "Invert Lead Motor"
+            }
+          },
+          "10,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Overshot",
+              "_title": "Overshot"
+            }
+          },
+          "9,2": {
+            "size": [
+              3,
+              2
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/Applied Output",
+              "_title": "Applied Output",
               "Graph/Visible time": 30.0,
               "Y-axis/Automatic bounds": true,
               "Y-axis/Upper bound": 1.0,
-              "Y-axis/Lower bound": -0.0,
-              "Visible data/SmartDashboard/Total Power (W)": true
+              "Y-axis/Lower bound": -1.0,
+              "Visible data/SmartDashboard/Applied Output": true
             }
           }
         }
@@ -430,6 +501,6 @@
     "x": -4.0,
     "y": 0.0,
     "width": 1797.5,
-    "height": 973.0
+    "height": 1024.5
   }
 }
