@@ -39,6 +39,8 @@ public class Robot extends TimedRobot {
   private CANSparkMax m_follow_motor = null;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
+  private boolean m_invert_motor = true;
+  private double m_rampRate = 0.0;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
 
@@ -50,12 +52,13 @@ public class Robot extends TimedRobot {
     kI = 0;
     kD = 0;
     kIz = 0;
-    kFF = 0.00017; // 0.000015; 
-    kMaxOutput = 1;
-    kMinOutput = 0.0;  // -1
+    kFF = 0.000015; 
+    kMaxOutput = 1.0;
+    kMinOutput = -1.0;
     maxRPM = 5700;
+    m_rampRate = 0.0;
 
-    initMotorController(deviceID, m_follow_deviceID, m_follow_motor_inverted);
+    initMotorController(deviceID, m_invert_motor, m_follow_deviceID, m_follow_motor_inverted);
 
     // display PID coefficients on SmartDashboard
     SmartDashboard.putNumber("P Gain", kP);
@@ -76,14 +79,19 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Error (RPM)", 0.0);
     SmartDashboard.putNumber("Follow CAN Id", m_follow_deviceID);
     SmartDashboard.putBoolean("Invert Follow Motor", m_follow_motor_inverted);
+    SmartDashboard.putBoolean("Invert Lead Motor", m_invert_motor);
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
     SmartDashboard.putData("Mode", mode_chooser);
+    SmartDashboard.putNumber("Applied Output", 0.0);
+    SmartDashboard.putNumber("Ramp Rate", m_rampRate);
+
   }
 
-  private void initMotorController(int canId, int follow_canId, boolean follow_inverted) {
+  private void initMotorController(int canId, boolean invert_motor, int follow_canId, boolean follow_inverted) {
 
     deviceID = canId;
+    m_invert_motor = invert_motor;
 
     // initialize motor
     m_motor = new CANSparkMax(deviceID, MotorType.kBrushless);
@@ -95,6 +103,7 @@ public class Robot extends TimedRobot {
      */
     m_motor.restoreFactoryDefaults();
     m_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    m_motor.setInverted(m_invert_motor);
 
     if (m_follow_motor != null) {
       // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
@@ -122,6 +131,9 @@ public class Robot extends TimedRobot {
      */
     m_pidController = m_motor.getPIDController();
 
+    // set ramp rate. Number of seconds to go from 0 to 100% voltage 
+    m_motor.setClosedLoopRampRate(m_rampRate);
+
     // Encoder object created to display position values
     m_encoder = m_motor.getEncoder();
 
@@ -145,24 +157,27 @@ public class Robot extends TimedRobot {
     double max = SmartDashboard.getNumber("Max Output", 0);
     double min = SmartDashboard.getNumber("Min Output", 0);
     int canId = (int) SmartDashboard.getNumber("CAN Id", 0);
-
+    boolean invert_motor = SmartDashboard.getBoolean("Invert Lead Motor", m_invert_motor);
     int follow_canId = (int) SmartDashboard.getNumber("Follow CAN Id", 0);
     boolean follow_inverted = (boolean) SmartDashboard.getBoolean("nvert Follow Motor", true);
+    double rampRate = SmartDashboard.getNumber("Ramp Rate", 0);
 
-    if ((canId != deviceID) || (follow_canId != m_follow_deviceID) || (follow_inverted != m_follow_motor_inverted)) {
-      initMotorController(canId, follow_canId, follow_inverted);
+    if ((canId != deviceID) || (invert_motor != m_invert_motor) || (follow_canId != m_follow_deviceID)
+        || (follow_inverted != m_follow_motor_inverted)) {
+      initMotorController(canId, invert_motor, follow_canId, follow_inverted);
     }
 
-   // if PID coefficients on SmartDashboard have changed, write new values to controller
-   if((p != kP)) { m_pidController.setP(p); kP = p; }
-   if((i != kI)) { m_pidController.setI(i); kI = i; }
-   if((d != kD)) { m_pidController.setD(d); kD = d; }
-   if((iz != kIz)) { m_pidController.setIZone(iz); kIz = iz; }
-   if((ff != kFF)) { m_pidController.setFF(ff); kFF = ff; }
-   if((max != kMaxOutput) || (min != kMinOutput)) { 
+    // if PID coefficients on SmartDashboard have changed, write new values to controller
+    if((p != kP)) { m_pidController.setP(p); kP = p; }
+    if((i != kI)) { m_pidController.setI(i); kI = i; }
+    if((d != kD)) { m_pidController.setD(d); kD = d; }
+    if((iz != kIz)) { m_pidController.setIZone(iz); kIz = iz; }
+    if((ff != kFF)) { m_pidController.setFF(ff); kFF = ff; }
+    if((max != kMaxOutput) || (min != kMinOutput)) { 
       m_pidController.setOutputRange(min, max);
       kMinOutput = min; kMaxOutput = max;
     }
+    if(rampRate != m_rampRate) { m_motor.setClosedLoopRampRate(rampRate); m_rampRate = rampRate;}
 
     /**
      * PIDController objects are commanded to a set point using the 
@@ -226,7 +241,7 @@ public class Robot extends TimedRobot {
     double rpm = m_encoder.getVelocity();
 
     if (m_elapsedTime_sec == 0) {
-      if (Math.abs(rpm - m_setPoint) < 10) {
+      if (Math.abs(rpm - m_setPoint) < 50) {
           m_elapsedTime_sec = ((double)(System.nanoTime() - m_startTime_nanosec)) / 1000000000.0;
       }
     }
@@ -251,5 +266,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
     SmartDashboard.putNumber("Error (RPM)", error);
+    SmartDashboard.putNumber("Applied Output", m_motor.getAppliedOutput());
   }
 }
