@@ -40,7 +40,6 @@ public class Robot extends TimedRobot {
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
   private boolean m_invert_motor = true;
-  private double m_rampRate = 0.0;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
 
@@ -56,7 +55,6 @@ public class Robot extends TimedRobot {
     kMaxOutput = 1.0;
     kMinOutput = -1.0;
     maxRPM = 5700;
-    m_rampRate = 0.0;
 
     initMotorController(deviceID, m_invert_motor, m_follow_deviceID, m_follow_motor_inverted);
 
@@ -84,7 +82,6 @@ public class Robot extends TimedRobot {
     mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
     SmartDashboard.putData("Mode", mode_chooser);
     SmartDashboard.putNumber("Applied Output", 0.0);
-    SmartDashboard.putNumber("Ramp Rate", m_rampRate);
 
   }
 
@@ -131,9 +128,6 @@ public class Robot extends TimedRobot {
      */
     m_pidController = m_motor.getPIDController();
 
-    // set ramp rate. Number of seconds to go from 0 to 100% voltage 
-    m_motor.setClosedLoopRampRate(m_rampRate);
-
     // Encoder object created to display position values
     m_encoder = m_motor.getEncoder();
 
@@ -160,7 +154,6 @@ public class Robot extends TimedRobot {
     boolean invert_motor = SmartDashboard.getBoolean("Invert Lead Motor", m_invert_motor);
     int follow_canId = (int) SmartDashboard.getNumber("Follow CAN Id", 0);
     boolean follow_inverted = (boolean) SmartDashboard.getBoolean("nvert Follow Motor", true);
-    double rampRate = SmartDashboard.getNumber("Ramp Rate", 0);
 
     if ((canId != deviceID) || (invert_motor != m_invert_motor) || (follow_canId != m_follow_deviceID)
         || (follow_inverted != m_follow_motor_inverted)) {
@@ -177,8 +170,7 @@ public class Robot extends TimedRobot {
       m_pidController.setOutputRange(min, max);
       kMinOutput = min; kMaxOutput = max;
     }
-    if(rampRate != m_rampRate) { m_motor.setClosedLoopRampRate(rampRate); m_rampRate = rampRate;}
-
+    
     /**
      * PIDController objects are commanded to a set point using the 
      * SetReference() method.
