@@ -40,6 +40,8 @@ public class Robot extends TimedRobot {
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
   private boolean m_invert_motor = true;
+  private SlewRateFilter m_rateFilter;
+  private double m_rate_RPMpersecond;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
 
@@ -55,6 +57,9 @@ public class Robot extends TimedRobot {
     kMaxOutput = 1.0;
     kMinOutput = -1.0;
     maxRPM = 5700;
+    m_rate_RPMpersecond = 10000.0; 
+
+    rateFilter = new SlewRateFilter(m_rate_RPMpersecond, m_setPoint);
 
     initMotorController(deviceID, m_invert_motor, m_follow_deviceID, m_follow_motor_inverted);
 
@@ -82,6 +87,7 @@ public class Robot extends TimedRobot {
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     SmartDashboard.putData("Mode", mode_chooser);
     SmartDashboard.putNumber("Applied Output", 0.0);
+    SmartDashboard.putNumber("Ramp Rate (RPM/s)", m_rate_RPMpersecond);
 
   }
 
@@ -174,6 +180,13 @@ public class Robot extends TimedRobot {
       kMinOutput = min; kMaxOutput = max;
     }
     
+    m_rateFilter = SmartDashboard.getNumber("Ramp Rate (RPM/s)", 0);
+    if (ramprate != m_rate_RPMpersecond) {
+      m_rateFilter = new SlewRateFilter(ramprate, m_setPoint);
+      m_rate_RPMpersecond = ramprate;
+      SmartDashboard.putNumber("Ramp Rate (RPM/s)", m_rate_RPMpersecond);
+    }
+
     /**
      * PIDController objects are commanded to a set point using the 
      * SetReference() method.
@@ -196,30 +209,24 @@ public class Robot extends TimedRobot {
         // deadbanding. ignore really small joystick inputs
         setPoint = 0;
       }
-      m_pidController.setReference(setPoint, ControlType.kVelocity);
     }
     else if (mode_chooser.getSelected() == "fixed") {
       // press A, B, Y, X buttons set speed
       // press Right Bumper to stop (set RPM to zero)
       if (m_xboxController.getAButtonPressed()) {
         setPoint = 1000;
-        m_pidController.setReference(setPoint, ControlType.kVelocity);
       }
       else if (m_xboxController.getBButtonPressed()) {
         setPoint = 2000;
-        m_pidController.setReference(setPoint, ControlType.kVelocity);
       }
       else if (m_xboxController.getYButtonPressed()) {
         setPoint = 3000;
-        m_pidController.setReference(setPoint, ControlType.kVelocity);
       }
       else if (m_xboxController.getXButtonPressed()) {
         setPoint = 4000;
-        m_pidController.setReference(setPoint, ControlType.kVelocity);
       }
       else if (m_xboxController.getBumperPressed(Hand.kRight)) {
         setPoint = 0;
-        m_pidController.setReference(setPoint, ControlType.kVelocity);
       } 
     }
 
@@ -253,7 +260,16 @@ public class Robot extends TimedRobot {
       }
     }
 
-    SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
+    // Calculate and Set new reference RPM
+    double reference_setpoint = m_rateFilter.calculate(setPoint);
+    if (setPoint == 0) {
+       // when we hit  stop, stop immediately. (safety!)
+      reference_setpoint = 0;
+      m_rateFilter.reset(0);
+    }
+    m_pidController.setReference(reference_setpoint, ControlType.kVelocity);
+
+    SmartDashboard.putNumber("SetPoint (RPM)", reference_setpoint);  // was m_setpoint
     SmartDashboard.putNumber("Velocity (RPM)", rpm);
     SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
     SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
