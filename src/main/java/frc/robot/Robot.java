@@ -78,8 +78,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Follow CAN Id", m_follow_deviceID);
     SmartDashboard.putBoolean("Invert Follow Motor", m_follow_motor_inverted);
     SmartDashboard.putBoolean("Invert Lead Motor", m_invert_motor);
+    mode_chooser.addOption("Fixed RPM (A, B, Y, X buttons)", "fixed");
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
-    mode_chooser.addOption("Fixed RPM (A, B, Y, X bottons)", "fixed");
     SmartDashboard.putData("Mode", mode_chooser);
     SmartDashboard.putNumber("Applied Output", 0.0);
 
@@ -158,6 +158,9 @@ public class Robot extends TimedRobot {
     if ((canId != deviceID) || (invert_motor != m_invert_motor) || (follow_canId != m_follow_deviceID)
         || (follow_inverted != m_follow_motor_inverted)) {
       initMotorController(canId, invert_motor, follow_canId, follow_inverted);
+
+      // Reset RPM to zero if we change anything about the motor configuration. (safety first!)
+      m_setPoint = 0;
     }
 
     // if PID coefficients on SmartDashboard have changed, write new values to controller
