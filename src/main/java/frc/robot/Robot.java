@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.SlewRateLimiter;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -40,7 +41,7 @@ public class Robot extends TimedRobot {
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
   private boolean m_invert_motor = true;
-  private SlewRateFilter m_rateFilter;
+  private SlewRateLimiter m_rateLimiter;
   private double m_rate_RPMpersecond;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
@@ -59,7 +60,7 @@ public class Robot extends TimedRobot {
     maxRPM = 5700;
     m_rate_RPMpersecond = 10000.0; 
 
-    rateFilter = new SlewRateFilter(m_rate_RPMpersecond, m_setPoint);
+    m_rateLimiter = new SlewRateLimiter(m_rate_RPMpersecond, m_setPoint);
 
     initMotorController(deviceID, m_invert_motor, m_follow_deviceID, m_follow_motor_inverted);
 
@@ -180,9 +181,9 @@ public class Robot extends TimedRobot {
       kMinOutput = min; kMaxOutput = max;
     }
     
-    m_rateFilter = SmartDashboard.getNumber("Ramp Rate (RPM/s)", 0);
+    double ramprate = SmartDashboard.getNumber("Ramp Rate (RPM/s)", 0);
     if (ramprate != m_rate_RPMpersecond) {
-      m_rateFilter = new SlewRateFilter(ramprate, m_setPoint);
+      m_rateLimiter = new SlewRateLimiter(ramprate, m_setPoint);
       m_rate_RPMpersecond = ramprate;
       SmartDashboard.putNumber("Ramp Rate (RPM/s)", m_rate_RPMpersecond);
     }
@@ -261,11 +262,11 @@ public class Robot extends TimedRobot {
     }
 
     // Calculate and Set new reference RPM
-    double reference_setpoint = m_rateFilter.calculate(setPoint);
+    double reference_setpoint = m_rateLimiter.calculate(setPoint);
     if (setPoint == 0) {
        // when we hit  stop, stop immediately. (safety!)
       reference_setpoint = 0;
-      m_rateFilter.reset(0);
+      m_rateLimiter.reset(0);
     }
     m_pidController.setReference(reference_setpoint, ControlType.kVelocity);
 
