@@ -1,4 +1,5 @@
 # Flywheel-Tuner
+
 RoboRIO program for tuning a flywheel using REV Robotics SparkMax NEO motor(s)
 
 A small WPILib project to quickly tune your REV Robotics NEO powered flywheel.
@@ -45,7 +46,7 @@ In Variable mode, the left stick controls the set point RPM.
 
 A follow motor can be configured by setting the 'Follow CAN Id' SmartDashboard field. Setting the CAN ID to zero disables follow mode. The 'Invert Follow Motor' field on SmartDashboard indicates if the follow motor turns in the same or opposite direction as the lead motor.
 
-Try determining the feed forward and kP values for a single motor before tuning with the follow motor. Make sure the NEO motors are set to coast in idle mode. Consult the [Spark Max quickstart guide](https://www.revrobotics.com/sparkmax-quickstart/) to confirm. For brushless NEOs, the status LEDs should be magenta (and not cyan).
+Try determining the feed forward and kP values for a single motor before tuning with the follow motor. Make sure the NEO motors are set to coast in idle mode. Consult the [Spark Max quick start guide](https://www.revrobotics.com/sparkmax-quickstart/) to confirm. For brushless NEOs, the status LEDs should be magenta (and not cyan).
 
 ## Ramp Rate
 
@@ -53,11 +54,11 @@ Depending on your setup, you may want to limit the acceleration and avoid maxing
 
 For instance a ramp rate prevents the set point from going directly from 0 to 2000, and increases the set point over time. The effect is that the PIDF closed loop will be chasing the set point as it moves towards the ultimate target RPM.
 
-The ramp rate is implemented using the [WPILib SlewRateLimit](https://first.wpi.edu/FRC/roborio/release/docs/java/edu/wpi/first/wpilibj/SlewRateLimiter.html) class. For more information read the [WPILib docs](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/filters/slew-rate-limiter.html).
-
 ### Dos
 
 The recommended way to ramp up to a given velocity is to ramp up the set point over time. Instead of going from a set point of 0 RPM to 4000 RPM, programmatically set the RPM to something lower, say 100 RPM and keep increasing the set point until it reaches the desired 4000 RPM.
+
+The ramp rate is implemented using the [WPILib SlewRateLimit](https://first.wpi.edu/FRC/roborio/release/docs/java/edu/wpi/first/wpilibj/SlewRateLimiter.html) class. For more information read the [WPILib docs](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/filters/slew-rate-limiter.html).
 
 ### Don'ts
 

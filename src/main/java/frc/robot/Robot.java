@@ -112,7 +112,7 @@ public class Robot extends TimedRobot {
     if (m_follow_motor != null) {
       // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
       m_follow_motor.restoreFactoryDefaults();
-      // make sure motor is in coast mode, in case this motor is mechanically joined to the leaad motor
+      // make sure motor is in coast mode, in case this motor is mechanically joined to the lead motor
       m_follow_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     }
 
@@ -160,7 +160,7 @@ public class Robot extends TimedRobot {
     int canId = (int) SmartDashboard.getNumber("CAN Id", 0);
     boolean invert_motor = SmartDashboard.getBoolean("Invert Lead Motor", m_invert_motor);
     int follow_canId = (int) SmartDashboard.getNumber("Follow CAN Id", 0);
-    boolean follow_inverted = (boolean) SmartDashboard.getBoolean("nvert Follow Motor", true);
+    boolean follow_inverted = (boolean) SmartDashboard.getBoolean("Invert Follow Motor", true);
 
     if ((canId != deviceID) || (invert_motor != m_invert_motor) || (follow_canId != m_follow_deviceID)
         || (follow_inverted != m_follow_motor_inverted)) {
@@ -204,10 +204,10 @@ public class Robot extends TimedRobot {
      */
     double setPoint = m_setPoint;
     if (mode_chooser.getSelected() == "variable") {
-      // left joystick set RPM setpoint
+      // left joystick set RPM set point
       setPoint =  m_xboxController.getY(Hand.kLeft) * maxRPM;
       if (Math.abs(setPoint) < 40) {
-        // deadbanding. ignore really small joystick inputs
+        // dead banding. ignore really small joystick inputs
         setPoint = 0;
       }
     }
@@ -261,7 +261,7 @@ public class Robot extends TimedRobot {
       }
     }
 
-    // Calculate and Set new reference RPM
+    // Calculate and set new reference RPM
     double reference_setpoint = m_rateLimiter.calculate(setPoint);
     if (setPoint == 0) {
        // when we hit  stop, stop immediately. (safety!)
