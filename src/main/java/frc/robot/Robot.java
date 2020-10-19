@@ -60,7 +60,7 @@ public class Robot extends TimedRobot {
     kMaxOutput = 1.0;
     kMinOutput = -1.0;
     maxRPM = 5700;
-    m_rate_RPMpersecond = 1e10    // 10 million effectively disables rate limiting
+    m_rate_RPMpersecond = 1e10;    // 10 million effectively disables rate limiting
 
     m_rateLimiter = new SlewRateLimiter(m_rate_RPMpersecond, m_setPoint);
 
