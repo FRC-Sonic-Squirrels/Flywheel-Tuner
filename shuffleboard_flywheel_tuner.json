@@ -249,6 +249,17 @@
               "Y-axis/Lower bound": -1.0,
               "Visible data/SmartDashboard/Applied Output": true
             }
+          },
+          "1,4": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Ramp Rate (RPM/s)",
+              "_title": "Ramp Rate (RPM/s)"
+            }
           }
         }
       }
