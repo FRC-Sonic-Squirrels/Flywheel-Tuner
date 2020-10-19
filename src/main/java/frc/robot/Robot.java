@@ -50,15 +50,17 @@ public class Robot extends TimedRobot {
   public void robotInit() {
 
     // PID coefficients (starting point)
+    // Small initial kFF and kP values, probably just big enough to do *something* 
+    // and *probably* too small to overdrive an untuned system.
+    kFF = 0.000015;  
     kP = 0.00003;
     kI = 0;
     kD = 0;
     kIz = 0;
-    kFF = 0.000015; 
     kMaxOutput = 1.0;
     kMinOutput = -1.0;
     maxRPM = 5700;
-    m_rate_RPMpersecond = 10000.0; 
+    m_rate_RPMpersecond = 1e10    // 10 million effectively disables rate limiting
 
     m_rateLimiter = new SlewRateLimiter(m_rate_RPMpersecond, m_setPoint);
 
