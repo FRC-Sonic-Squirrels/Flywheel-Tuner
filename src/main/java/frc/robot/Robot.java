@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
+/* Copyright (c) 2017-2021 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
@@ -15,11 +15,13 @@ import edu.wpi.first.wpilibj.SlewRateLimiter;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.revrobotics.CANEncoder;
-import com.revrobotics.CANPIDController;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.ControlType;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.FollowerType;
+import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;;
 
 /**
  * This is a demo program showing the use of the RobotDrive class, specifically
@@ -36,15 +38,24 @@ public class Robot extends TimedRobot {
   private double m_elapsedTime_sec = 0;
   private double overshot = 0;
   private double undershot = 0;
-  private CANSparkMax m_motor;
-  private CANSparkMax m_follow_motor = null;
-  private CANPIDController m_pidController;
-  private CANEncoder m_encoder;
+  private WPI_TalonFX m_motor;
+  private WPI_TalonFX m_follow_motor = null;
+  // TalonFX doesn't use a separate pid controller object
+  private TalonFXSensorCollection m_encoder;
   private boolean m_invert_motor = true;
   private SlewRateLimiter m_rateLimiter;
   private double m_rate_RPMpersecond;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
+
+  final int kPIDLoopIdx = 0;
+  final int kTimeoutMs = 30;
+
+  // FalconFX reports velocity in counts per 100ms
+  // 1 revolution = 2048 counts
+  // 1 minutes = 60 * 10 * 100ms
+  // conversion is  600  / 2048
+  public double ticks2RPm = 600.0 / 2048.0;
 
   @Override
   public void robotInit() {
@@ -52,14 +63,14 @@ public class Robot extends TimedRobot {
     // PID coefficients (starting point)
     // Small initial kFF and kP values, probably just big enough to do *something* 
     // and *probably* too small to overdrive an untuned system.
-    kFF = 0.000015;  
-    kP = 0.00003;
+    kFF = 0.02;
+    kP = 0.04;
     kI = 0;
     kD = 0;
     kIz = 0;
     kMaxOutput = 1.0;
     kMinOutput = -1.0;
-    maxRPM = 5700;
+    maxRPM = 6300;     // free speed of Falcon 500 is listed as 6380
     m_rate_RPMpersecond = 1e10;    // 10 million effectively disables rate limiting
 
     m_rateLimiter = new SlewRateLimiter(m_rate_RPMpersecond, m_setPoint);
@@ -76,8 +87,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Min Output", kMinOutput);
     SmartDashboard.putNumber("CAN Id", deviceID);
     SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
-    SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getVelocity());
-    SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
+    SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getIntegratedSensorVelocity() * ticks2RPm );
+    SmartDashboard.putNumber("Total Current (Amp)", m_motor.getStatorCurrent());
     SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
@@ -100,29 +111,32 @@ public class Robot extends TimedRobot {
     m_invert_motor = invert_motor;
 
     // initialize motor
-    m_motor = new CANSparkMax(deviceID, MotorType.kBrushless);
+    m_motor = new WPI_TalonFX(deviceID);
 
     /**
      * The RestoreFactoryDefaults method can be used to reset the configuration parameters 
      * in the SPARK MAX to their factory default state. If no argument is passed, these 
      * parameters will not persist between power cycles
      */
-    m_motor.restoreFactoryDefaults();
-    m_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    m_motor.configFactoryDefault();
+    m_motor.setNeutralMode(NeutralMode.Coast);
     m_motor.setInverted(m_invert_motor);
+    m_motor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, kPIDLoopIdx, kTimeoutMs);
 
     if (m_follow_motor != null) {
       // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
-      m_follow_motor.restoreFactoryDefaults();
+      m_follow_motor.configFactoryDefault();
       // make sure motor is in coast mode, in case this motor is mechanically joined to the lead motor
-      m_follow_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+      m_follow_motor.setNeutralMode(NeutralMode.Coast);
     }
 
     if (follow_canId != 0) {
       // configure follow motor
-      m_follow_motor = new CANSparkMax(follow_canId, MotorType.kBrushless);
-      m_follow_motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
-      m_follow_motor.follow(m_motor, follow_inverted);
+      m_follow_motor = new WPI_TalonFX(follow_canId);
+      m_follow_motor.setNeutralMode(NeutralMode.Coast);
+      m_follow_motor.follow(m_motor, FollowerType.PercentOutput);
+      // always spin opposite of the lead motor
+      m_follow_motor.setInverted(InvertType.OpposeMaster);
     }
     else {
       m_follow_motor = null;
@@ -131,22 +145,23 @@ public class Robot extends TimedRobot {
     m_follow_motor_inverted = follow_inverted;
 
     /**
-     * In order to use PID functionality for a controller, a CANPIDController object
-     * is constructed by calling the getPIDController() method on an existing
-     * CANSparkMax object
+     * TalonFX sets PID values directly in the WPI_TalonFX object.
      */
-    m_pidController = m_motor.getPIDController();
 
     // Encoder object created to display position values
-    m_encoder = m_motor.getEncoder();
+    m_encoder = m_motor.getSensorCollection();
 
     // set PID coefficients
-    m_pidController.setP(kP);
-    m_pidController.setI(kI);
-    m_pidController.setD(kD);
-    m_pidController.setIZone(kIz);
-    m_pidController.setFF(kFF);
-    m_pidController.setOutputRange(kMinOutput, kMaxOutput);
+    m_motor.config_kF(kPIDLoopIdx, kFF, kTimeoutMs);
+		m_motor.config_kP(kPIDLoopIdx, kP, kTimeoutMs);
+		m_motor.config_kI(kPIDLoopIdx, kI, kTimeoutMs);
+		m_motor.config_kD(kPIDLoopIdx, kD, kTimeoutMs);
+    m_motor.config_IntegralZone(kPIDLoopIdx, kIz, kTimeoutMs);
+    m_motor.configNominalOutputForward(0, kTimeoutMs);
+    m_motor.configNominalOutputReverse(0, kTimeoutMs);
+		m_motor.configPeakOutputForward(1, kTimeoutMs);
+		m_motor.configPeakOutputReverse(-1, kTimeoutMs);
+
   }
 
   @Override
@@ -173,13 +188,14 @@ public class Robot extends TimedRobot {
     }
 
     // if PID coefficients on SmartDashboard have changed, write new values to controller
-    if((p != kP)) { m_pidController.setP(p); kP = p; }
-    if((i != kI)) { m_pidController.setI(i); kI = i; }
-    if((d != kD)) { m_pidController.setD(d); kD = d; }
-    if((iz != kIz)) { m_pidController.setIZone(iz); kIz = iz; }
-    if((ff != kFF)) { m_pidController.setFF(ff); kFF = ff; }
+    if((p != kP)) { m_motor.config_kP(kPIDLoopIdx, p, kTimeoutMs); kP = p; }
+    if((i != kI)) { m_motor.config_kI(kPIDLoopIdx, i, kTimeoutMs); kI = i; }
+    if((d != kD)) { m_motor.config_kD(kPIDLoopIdx, d, kTimeoutMs); kD = d; }
+    if((iz != kIz)) { m_motor.config_IntegralZone(kPIDLoopIdx, iz, kTimeoutMs); kIz = iz; }
+    if((ff != kFF)) { m_motor.config_kF(kPIDLoopIdx, ff, kTimeoutMs);; kFF = ff; }
     if((max != kMaxOutput) || (min != kMinOutput)) { 
-      m_pidController.setOutputRange(min, max);
+      m_motor.configPeakOutputForward(max, kTimeoutMs);
+      m_motor.configPeakOutputReverse(min, kTimeoutMs);
       kMinOutput = min; kMaxOutput = max;
     }
     
@@ -243,7 +259,7 @@ public class Robot extends TimedRobot {
       m_setPoint = setPoint;
     }
 
-    double rpm = m_encoder.getVelocity();
+    double rpm = m_encoder.getIntegratedSensorVelocity() * ticks2RPm;
 
     if (m_elapsedTime_sec == 0) {
       if (Math.abs(rpm - m_setPoint) < 50) {
@@ -270,7 +286,8 @@ public class Robot extends TimedRobot {
       reference_setpoint = 0;
       m_rateLimiter.reset(0);
     }
-    m_pidController.setReference(reference_setpoint, ControlType.kVelocity);
+    
+    m_motor.set(ControlMode.Velocity, reference_setpoint / ticks2RPm);
 
     SmartDashboard.putNumber("SetPoint (RPM)", reference_setpoint);  // was m_setpoint
     SmartDashboard.putNumber("Velocity (RPM)", rpm);
@@ -280,6 +297,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
     SmartDashboard.putNumber("Error (RPM)", error);
-    SmartDashboard.putNumber("Applied Output", m_motor.getAppliedOutput());
+    SmartDashboard.putNumber("Applied Output", m_motor.getMotorOutputVoltage());
   }
 }
