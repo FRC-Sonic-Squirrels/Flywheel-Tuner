@@ -8,6 +8,10 @@ If you're using a Cross The Road Electronics (CTRE) motor you should use the CTR
 
 I highly recommend reading [this excellent article](https://trickingrockstothink.com/blog_posts/2019/10/19/tuning_pid.html) on how to tune PIDF for a flywheel. Follow the example in the sidebar to tune an imaginary flywheel.
 
+## Falcon 500
+
+Check out the `CTRE` branch for a version of this code that works with Falon 500 motors and the `WPI_FalonFX` classes.
+
 ## Setup
 
 Before building this project in VS Code, make sure you run the WPILib `Set Team Number` to your team number.
