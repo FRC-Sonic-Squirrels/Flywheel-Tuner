@@ -7,18 +7,17 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.SlewRateLimiter;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.revrobotics.CANEncoder;
-import com.revrobotics.CANPIDController;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.ControlType;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 /**
@@ -27,7 +26,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
  */
 public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
-  private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
+  private PowerDistribution m_pdp = new PowerDistribution();
   private int deviceID = 1;
   private int m_follow_deviceID = 0;    // CAN Id zero disables follow motor mode
   private boolean m_follow_motor_inverted = true;
@@ -38,8 +37,8 @@ public class Robot extends TimedRobot {
   private double undershot = 0;
   private CANSparkMax m_motor;
   private CANSparkMax m_follow_motor = null;
-  private CANPIDController m_pidController;
-  private CANEncoder m_encoder;
+  private SparkMaxPIDController m_pidController;
+  private RelativeEncoder m_encoder;
   private boolean m_invert_motor = true;
   private SlewRateLimiter m_rateLimiter;
   private double m_rate_RPMpersecond;
@@ -207,7 +206,7 @@ public class Robot extends TimedRobot {
     double setPoint = m_setPoint;
     if (mode_chooser.getSelected() == "variable") {
       // left joystick set RPM set point
-      setPoint =  m_xboxController.getY(Hand.kLeft) * maxRPM;
+      setPoint =  m_xboxController.getLeftY() * maxRPM;
       if (Math.abs(setPoint) < 40) {
         // dead banding. ignore really small joystick inputs
         setPoint = 0;
@@ -228,7 +227,7 @@ public class Robot extends TimedRobot {
       else if (m_xboxController.getXButtonPressed()) {
         setPoint = 4000;
       }
-      else if (m_xboxController.getBumperPressed(Hand.kRight)) {
+      else if (m_xboxController.getRightBumperPressed()) {
         setPoint = 0;
       } 
     }
