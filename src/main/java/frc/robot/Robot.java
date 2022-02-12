@@ -7,11 +7,10 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.SlewRateLimiter;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -29,7 +28,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;;
  */
 public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
-  private PowerDistributionPanel m_pdp = new PowerDistributionPanel();
+  private PowerDistribution m_pdp = new PowerDistribution();
   private int deviceID = 1;
   private int m_follow_deviceID = 0;    // CAN Id zero disables follow motor mode
   private boolean m_follow_motor_inverted = true;
@@ -223,7 +222,7 @@ public class Robot extends TimedRobot {
     double setPoint = m_setPoint;
     if (mode_chooser.getSelected() == "variable") {
       // left joystick set RPM set point
-      setPoint =  m_xboxController.getY(Hand.kLeft) * maxRPM;
+      setPoint =  m_xboxController.getLeftY() * maxRPM;
       if (Math.abs(setPoint) < 40) {
         // dead banding. ignore really small joystick inputs
         setPoint = 0;
@@ -244,7 +243,7 @@ public class Robot extends TimedRobot {
       else if (m_xboxController.getXButtonPressed()) {
         setPoint = 4000;
       }
-      else if (m_xboxController.getBumperPressed(Hand.kRight)) {
+      else if (m_xboxController.getRightBumperPressed()) {
         setPoint = 0;
       } 
     }
