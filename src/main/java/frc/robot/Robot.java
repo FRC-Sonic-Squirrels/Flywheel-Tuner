@@ -28,7 +28,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;;
  */
 public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
-  private PowerDistribution m_pdp = new PowerDistribution();
+  //private PowerDistribution m_pd = new PowerDistribution();
   private int deviceID = 1;
   private int m_follow_deviceID = 0;    // CAN Id zero disables follow motor mode
   private boolean m_follow_motor_inverted = true;
@@ -88,7 +88,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
     SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getIntegratedSensorVelocity() * ticks2RPm );
     SmartDashboard.putNumber("Total Current (Amp)", m_motor.getStatorCurrent());
-    SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
+    //SmartDashboard.putNumber("Total Power (W)", m_pd.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Follow CAN Id", m_follow_deviceID);
     SmartDashboard.putBoolean("Invert Follow Motor", m_follow_motor_inverted);
     SmartDashboard.putBoolean("Invert Lead Motor", m_invert_motor);
-    mode_chooser.addOption("Fixed RPM (A, B, Y, X buttons)", "fixed");
+    mode_chooser.setDefaultOption("Fixed RPM (A, B, Y, X buttons)", "fixed");
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     SmartDashboard.putData("Mode", mode_chooser);
     SmartDashboard.putNumber("Applied Output", 0.0);
@@ -290,8 +290,8 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("SetPoint (RPM)", reference_setpoint);  // was m_setpoint
     SmartDashboard.putNumber("Velocity (RPM)", rpm);
-    SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
-    SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
+    // SmartDashboard.putNumber("Total Current (Amp)", m_pd.getTotalCurrent());
+    // SmartDashboard.putNumber("Total Power (W)", m_pd.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
