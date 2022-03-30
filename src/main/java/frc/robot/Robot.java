@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.FollowerType;
@@ -45,6 +46,7 @@ public class Robot extends TimedRobot {
   private SlewRateLimiter m_rateLimiter;
   private double m_rate_RPMpersecond;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
+  public double voltageCompensation = 11.0;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
 
   final int kPIDLoopIdx = 0;
@@ -84,6 +86,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Feed Forward", kFF);
     SmartDashboard.putNumber("Max Output", kMaxOutput);
     SmartDashboard.putNumber("Min Output", kMinOutput);
+    SmartDashboard.putNumber("Voltage Compensation", voltageCompensation);
     SmartDashboard.putNumber("CAN Id", deviceID);
     SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
     SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getIntegratedSensorVelocity() * ticks2RPm );
@@ -122,6 +125,12 @@ public class Robot extends TimedRobot {
     m_motor.setNeutralMode(NeutralMode.Coast);
     m_motor.setInverted(m_invert_motor);
     m_motor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, kPIDLoopIdx, kTimeoutMs);
+
+    m_motor.configVelocityMeasurementPeriod(SensorVelocityMeasPeriod.Period_1Ms);
+    m_motor.configVelocityMeasurementWindow(32);
+
+    m_motor.configVoltageCompSaturation(voltageCompensation);
+    m_motor.enableVoltageCompensation(true);
 
     if (m_follow_motor != null) {
       // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
