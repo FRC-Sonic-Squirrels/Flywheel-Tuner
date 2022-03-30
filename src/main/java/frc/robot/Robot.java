@@ -7,7 +7,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -182,9 +181,9 @@ public class Robot extends TimedRobot {
     boolean follow_inverted = (boolean) SmartDashboard.getBoolean("Invert Follow Motor", true);
 
     if ((canId != deviceID) || (invert_motor != m_invert_motor) || (follow_canId != m_follow_deviceID)
-        || (follow_inverted != m_follow_motor_inverted) || (canName != canBusName)) {
+        || (follow_inverted != m_follow_motor_inverted) || (!canName.equals(canBusName))) {
       initMotorController(canId, invert_motor, follow_canId, follow_inverted, canName);
-
+  
       // Reset RPM to zero if we change anything about the motor configuration. (safety first!)
       m_setPoint = 0;
     }
@@ -194,7 +193,8 @@ public class Robot extends TimedRobot {
     if((i != kI)) { m_motor.config_kI(kPIDLoopIdx, i, kTimeoutMs); kI = i; }
     if((d != kD)) { m_motor.config_kD(kPIDLoopIdx, d, kTimeoutMs); kD = d; }
     if((iz != kIz)) { m_motor.config_IntegralZone(kPIDLoopIdx, iz, kTimeoutMs); kIz = iz; }
-    if((ff != kFF)) { m_motor.config_kF(kPIDLoopIdx, ff, kTimeoutMs);; kFF = ff; }
+    if((ff != kFF)) { m_motor.config_kF(kPIDLoopIdx, ff, kTimeoutMs); kFF = ff; }
+    if(!(canName.equals(canBusName))) { canBusName = canName; }
     if((max != kMaxOutput) || (min != kMinOutput)) { 
       m_motor.configPeakOutputForward(max, kTimeoutMs);
       m_motor.configPeakOutputReverse(min, kTimeoutMs);
