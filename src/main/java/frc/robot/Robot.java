@@ -7,7 +7,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -15,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.FollowerType;
@@ -28,9 +28,10 @@ import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;;
  */
 public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
-  private PowerDistribution m_pdp = new PowerDistribution();
+  //private PowerDistribution m_pd = new PowerDistribution();
   private int deviceID = 1;
   private int m_follow_deviceID = 0;    // CAN Id zero disables follow motor mode
+  private String canBusName = "";       // default to Rio CAN Bus
   private boolean m_follow_motor_inverted = true;
   private double m_setPoint = 0;
   private long m_startTime_nanosec = 0;
@@ -45,6 +46,7 @@ public class Robot extends TimedRobot {
   private SlewRateLimiter m_rateLimiter;
   private double m_rate_RPMpersecond;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
+  public double voltageCompensation = 11.0;
   SendableChooser <String> mode_chooser = new SendableChooser<>();
 
   final int kPIDLoopIdx = 0;
@@ -74,7 +76,7 @@ public class Robot extends TimedRobot {
 
     m_rateLimiter = new SlewRateLimiter(m_rate_RPMpersecond, m_setPoint);
 
-    initMotorController(deviceID, m_invert_motor, m_follow_deviceID, m_follow_motor_inverted);
+    initMotorController(deviceID, m_invert_motor, m_follow_deviceID, m_follow_motor_inverted, canBusName);
 
     // display PID coefficients on SmartDashboard
     SmartDashboard.putNumber("P Gain", kP);
@@ -84,19 +86,21 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Feed Forward", kFF);
     SmartDashboard.putNumber("Max Output", kMaxOutput);
     SmartDashboard.putNumber("Min Output", kMinOutput);
+    SmartDashboard.putNumber("Voltage Compensation", voltageCompensation);
     SmartDashboard.putNumber("CAN Id", deviceID);
     SmartDashboard.putNumber("SetPoint (RPM)", m_setPoint);
     SmartDashboard.putNumber("Velocity (RPM)", m_encoder.getIntegratedSensorVelocity() * ticks2RPm );
     SmartDashboard.putNumber("Total Current (Amp)", m_motor.getStatorCurrent());
-    SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
+    //SmartDashboard.putNumber("Total Power (W)", m_pd.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
     SmartDashboard.putNumber("Error (RPM)", 0.0);
     SmartDashboard.putNumber("Follow CAN Id", m_follow_deviceID);
+    SmartDashboard.putString("CAN Bus Name", canBusName);
     SmartDashboard.putBoolean("Invert Follow Motor", m_follow_motor_inverted);
     SmartDashboard.putBoolean("Invert Lead Motor", m_invert_motor);
-    mode_chooser.addOption("Fixed RPM (A, B, Y, X buttons)", "fixed");
+    mode_chooser.setDefaultOption("Fixed RPM (A, B, Y, X buttons)", "fixed");
     mode_chooser.addOption("Variable RPM (left stick)", "variable");
     SmartDashboard.putData("Mode", mode_chooser);
     SmartDashboard.putNumber("Applied Output", 0.0);
@@ -104,13 +108,13 @@ public class Robot extends TimedRobot {
 
   }
 
-  private void initMotorController(int canId, boolean invert_motor, int follow_canId, boolean follow_inverted) {
+  private void initMotorController(int canId, boolean invert_motor, int follow_canId, boolean follow_inverted, String canBusName) {
 
     deviceID = canId;
     m_invert_motor = invert_motor;
 
     // initialize motor
-    m_motor = new WPI_TalonFX(deviceID);
+    m_motor = new WPI_TalonFX(deviceID, canBusName);
 
     /**
      * The RestoreFactoryDefaults method can be used to reset the configuration parameters 
@@ -122,6 +126,12 @@ public class Robot extends TimedRobot {
     m_motor.setInverted(m_invert_motor);
     m_motor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, kPIDLoopIdx, kTimeoutMs);
 
+    m_motor.configVelocityMeasurementPeriod(SensorVelocityMeasPeriod.Period_1Ms);
+    m_motor.configVelocityMeasurementWindow(32);
+
+    m_motor.configVoltageCompSaturation(voltageCompensation);
+    m_motor.enableVoltageCompensation(true);
+
     if (m_follow_motor != null) {
       // If there was a follow motor before, reset it to factory defaults. (disable follow mode)
       m_follow_motor.configFactoryDefault();
@@ -131,7 +141,7 @@ public class Robot extends TimedRobot {
 
     if (follow_canId != 0) {
       // configure follow motor
-      m_follow_motor = new WPI_TalonFX(follow_canId);
+      m_follow_motor = new WPI_TalonFX(follow_canId, canBusName);
       m_follow_motor.setNeutralMode(NeutralMode.Coast);
       m_follow_motor.follow(m_motor, FollowerType.PercentOutput);
       // always spin opposite of the lead motor
@@ -174,14 +184,15 @@ public class Robot extends TimedRobot {
     double max = SmartDashboard.getNumber("Max Output", 0);
     double min = SmartDashboard.getNumber("Min Output", 0);
     int canId = (int) SmartDashboard.getNumber("CAN Id", 0);
+    String canName = SmartDashboard.getString("CAN Bus Name", "");
     boolean invert_motor = SmartDashboard.getBoolean("Invert Lead Motor", m_invert_motor);
     int follow_canId = (int) SmartDashboard.getNumber("Follow CAN Id", 0);
     boolean follow_inverted = (boolean) SmartDashboard.getBoolean("Invert Follow Motor", true);
 
     if ((canId != deviceID) || (invert_motor != m_invert_motor) || (follow_canId != m_follow_deviceID)
-        || (follow_inverted != m_follow_motor_inverted)) {
-      initMotorController(canId, invert_motor, follow_canId, follow_inverted);
-
+        || (follow_inverted != m_follow_motor_inverted) || (!canName.equals(canBusName))) {
+      initMotorController(canId, invert_motor, follow_canId, follow_inverted, canName);
+  
       // Reset RPM to zero if we change anything about the motor configuration. (safety first!)
       m_setPoint = 0;
     }
@@ -191,7 +202,8 @@ public class Robot extends TimedRobot {
     if((i != kI)) { m_motor.config_kI(kPIDLoopIdx, i, kTimeoutMs); kI = i; }
     if((d != kD)) { m_motor.config_kD(kPIDLoopIdx, d, kTimeoutMs); kD = d; }
     if((iz != kIz)) { m_motor.config_IntegralZone(kPIDLoopIdx, iz, kTimeoutMs); kIz = iz; }
-    if((ff != kFF)) { m_motor.config_kF(kPIDLoopIdx, ff, kTimeoutMs);; kFF = ff; }
+    if((ff != kFF)) { m_motor.config_kF(kPIDLoopIdx, ff, kTimeoutMs); kFF = ff; }
+    if(!(canName.equals(canBusName))) { canBusName = canName; }
     if((max != kMaxOutput) || (min != kMinOutput)) { 
       m_motor.configPeakOutputForward(max, kTimeoutMs);
       m_motor.configPeakOutputReverse(min, kTimeoutMs);
@@ -243,6 +255,9 @@ public class Robot extends TimedRobot {
       else if (m_xboxController.getXButtonPressed()) {
         setPoint = 4000;
       }
+      else if (m_xboxController.getStartButton()) {
+        setPoint = 5000;
+      }
       else if (m_xboxController.getRightBumperPressed()) {
         setPoint = 0;
       } 
@@ -290,12 +305,13 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("SetPoint (RPM)", reference_setpoint);  // was m_setpoint
     SmartDashboard.putNumber("Velocity (RPM)", rpm);
-    SmartDashboard.putNumber("Total Current (Amp)", m_pdp.getTotalCurrent());
-    SmartDashboard.putNumber("Total Power (W)", m_pdp.getTotalPower());
+    // SmartDashboard.putNumber("Total Current (Amp)", m_pd.getTotalCurrent());
+    // SmartDashboard.putNumber("Total Power (W)", m_pd.getTotalPower());
     SmartDashboard.putNumber("Time to reach RPM", m_elapsedTime_sec);
     SmartDashboard.putNumber("Overshot", overshot);
     SmartDashboard.putNumber("Undershot", undershot);
     SmartDashboard.putNumber("Error (RPM)", error);
     SmartDashboard.putNumber("Applied Output", m_motor.getMotorOutputVoltage());
+    SmartDashboard.putNumber("Applied Current (A)", m_motor.getSupplyCurrent());
   }
 }
