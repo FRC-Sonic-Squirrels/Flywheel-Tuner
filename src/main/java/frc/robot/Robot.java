@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxAlternateEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -139,6 +140,11 @@ public class Robot extends TimedRobot {
     // Encoder object created to display position values
     m_encoder = m_motor.getEncoder();
 
+    m_encoder = m_motor.getAlternateEncoder(SparkMaxAlternateEncoder.Type.kQuadrature, 8192);
+    m_encoder.setPositionConversionFactor(1.0);
+    //because of gear box the encoder is spinning the wrong way
+    m_encoder.setInverted(true);
+
     // set PID coefficients
     m_pidController.setP(kP);
     m_pidController.setI(kI);
@@ -216,16 +222,16 @@ public class Robot extends TimedRobot {
       // press A, B, Y, X buttons set speed
       // press Right Bumper to stop (set RPM to zero)
       if (m_xboxController.getAButtonPressed()) {
-        setPoint = 1000;
+        setPoint = 50;
       }
       else if (m_xboxController.getBButtonPressed()) {
-        setPoint = 2000;
+        setPoint = 200;
       }
       else if (m_xboxController.getYButtonPressed()) {
-        setPoint = 3000;
+        setPoint = 300;
       }
       else if (m_xboxController.getXButtonPressed()) {
-        setPoint = 4000;
+        setPoint = 400;
       }
       else if (m_xboxController.getRightBumperPressed()) {
         setPoint = 0;
