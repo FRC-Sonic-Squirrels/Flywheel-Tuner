@@ -28,9 +28,9 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 public class Robot extends TimedRobot {
   private XboxController m_xboxController = new XboxController(0);
   private PowerDistribution m_pdp = new PowerDistribution();
-  private int deviceID = 1;
-  private int m_follow_deviceID = 0;    // CAN Id zero disables follow motor mode
-  private boolean m_follow_motor_inverted = true;
+  private int deviceID = 19;
+  private int m_follow_deviceID = 20;    // CAN Id zero disables follow motor mode
+  private boolean m_follow_motor_inverted = false;
   private double m_setPoint = 0;
   private long m_startTime_nanosec = 0;
   private double m_elapsedTime_sec = 0;
@@ -40,7 +40,7 @@ public class Robot extends TimedRobot {
   private CANSparkMax m_follow_motor = null;
   private SparkMaxPIDController m_pidController;
   private RelativeEncoder m_encoder;
-  private boolean m_invert_motor = true;
+  private boolean m_invert_motor = false;
   private SlewRateLimiter m_rateLimiter;
   private double m_rate_RPMpersecond;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
@@ -222,16 +222,16 @@ public class Robot extends TimedRobot {
       // press A, B, Y, X buttons set speed
       // press Right Bumper to stop (set RPM to zero)
       if (m_xboxController.getAButtonPressed()) {
-        setPoint = 50;
+        setPoint = 4;
       }
       else if (m_xboxController.getBButtonPressed()) {
-        setPoint = 200;
+        setPoint = 8;
       }
       else if (m_xboxController.getYButtonPressed()) {
-        setPoint = 300;
+        setPoint = 12;
       }
       else if (m_xboxController.getXButtonPressed()) {
-        setPoint = 400;
+        setPoint = 20;
       }
       else if (m_xboxController.getRightBumperPressed()) {
         setPoint = 0;
